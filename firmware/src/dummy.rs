@@ -1,49 +1,79 @@
 // firmware/src/dummy.rs
 
-use core::cell::RefCell;
-use critical_section::Mutex;
+use core::cell::UnsafeCell;
 
-const MEMORY_SIZE: usize = 64 * 1024;
+pub const MEMORY_SIZE: usize = 64 * 1024;
 
-static MEMORY: Mutex<RefCell<[u8; MEMORY_SIZE]>> = Mutex::new(RefCell::new([0xFF; MEMORY_SIZE]));
+struct DummyMemory {
+    data: UnsafeCell<[u8; MEMORY_SIZE]>,
+}
 
+unsafe impl Sync for DummyMemory {}
+
+static MEMORY: DummyMemory = DummyMemory {
+    data: UnsafeCell::new([0xFF; MEMORY_SIZE]),
+};
+
+#[derive(Debug, Clone, Copy)]
+pub enum Error {
+    OutOfBounds,
+}
+
+// Return device information
 pub fn probe() -> (&'static str, usize) {
     ("DUMMY", MEMORY_SIZE)
 }
 
+// Erase all memory
 pub fn erase() {
-    critical_section::with(|cs| {
-        let mut memory = MEMORY.borrow_ref_mut(cs);
+    unsafe {
+        let memory = &mut *MEMORY.data.get();
+
         memory.fill(0xFF);
-    });
+    }
 }
 
-pub fn read(address: usize, buffer: &mut [u8]) -> Result<(), ()> {
-    let end = address.checked_add(buffer.len()).ok_or(())?;
+// Read bytes
+pub fn read(address: usize, buffer: &mut [u8]) -> Result<(), Error> {
+    let end = address
+        .checked_add(buffer.len())
+        .ok_or(Error::OutOfBounds)?;
 
     if end > MEMORY_SIZE {
-        return Err(());
+        return Err(Error::OutOfBounds);
     }
 
-    critical_section::with(|cs| {
-        let memory = MEMORY.borrow_ref(cs);
+    unsafe {
+        let memory = &*MEMORY.data.get();
+
         buffer.copy_from_slice(&memory[address..end]);
-    });
+    }
 
     Ok(())
 }
 
-pub fn write(address: usize, data: &[u8]) -> Result<(), ()> {
-    let end = address.checked_add(data.len()).ok_or(())?;
+// Write bytes
+pub fn write(address: usize, data: &[u8]) -> Result<(), Error> {
+    let end = address.checked_add(data.len()).ok_or(Error::OutOfBounds)?;
 
     if end > MEMORY_SIZE {
-        return Err(());
+        return Err(Error::OutOfBounds);
     }
 
-    critical_section::with(|cs| {
-        let mut memory = MEMORY.borrow_ref_mut(cs);
+    unsafe {
+        let memory = &mut *MEMORY.data.get();
+
         memory[address..end].copy_from_slice(data);
-    });
+    }
 
     Ok(())
+}
+
+// Fill entire memory with a value
+pub fn fill(value: u8) {
+    unsafe {
+        let memory = &mut *MEMORY.data.get();
+
+        memory.fill(value);
+    }
 }
