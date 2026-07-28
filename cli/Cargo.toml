@@ -1,3 +1,4 @@
+# cli/Cargo.toml
 [package]
 name = "esprog-cli"
 version = "0.1.0"
