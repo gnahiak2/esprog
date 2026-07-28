@@ -1,3 +1,4 @@
+// firmware/src/lib.rs
 #![no_std]
 
 pub mod dummy;

@@ -1,2 +1,3 @@
+# firmware/rust-toolchain.toml
 [toolchain]
 channel = "esp"

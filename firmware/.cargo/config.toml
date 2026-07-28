@@ -1,3 +1,4 @@
+# firmware/.cargo/config.toml
 [target.xtensa-esp32s3-none-elf]
 runner = "espflash flash --monitor --chip esp32s3"
 

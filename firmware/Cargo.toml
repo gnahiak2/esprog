@@ -6,7 +6,7 @@ rust-version = "1.88"
 version      = "0.1.0"
 
 [[bin]]
-name = "firmware"
+name = "esprog-firmware"
 path = "./src/bin/main.rs"
 
 [dependencies]
