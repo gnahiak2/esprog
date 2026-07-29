@@ -6,7 +6,7 @@ right now it's got a working firmware, a desktop CLI, and both of them can talk 
 
 ---
 
-# ✨ cool stuff!!## 🔌 USB
+# ✨ cool stuff!
 
 - works over the ESP32-S3's built-in USB port!!- USB Serial/JTAG
 - automatic device detection
