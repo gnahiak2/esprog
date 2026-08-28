@@ -94,21 +94,17 @@ AA BB CC DD
 
 ---
 
-# 🛠️ how i made this
+# how i made this
 
 ESProg was made with:
 
 - Rust 🦀
 - ESP32-S3
 - esp-hal
-- USB Serial/JTAG
-- clap
-- serialport
-- way too much debugging :heavysob:
 
 ---
 
-# 🚀 how to run it!!
+# how to run it!!
 
 ## 1. clone the repo
 
@@ -150,7 +146,8 @@ cd ../cli
 cargo build
 ```
 
-## 6. try it!!```bash
+## 6. try it!!
+```bash
 cargo run -- ping
 ```
 
@@ -173,7 +170,8 @@ SIZE: 65536 bytes
 
 ---
 
-# 🚧 stuff i still wanna add!!## firmware
+# stuff i still wanna add!!
+## firmware
 
 - [x] USB communication
 - [x] command protocol
@@ -209,17 +207,15 @@ SIZE: 65536 bytes
 - [ ] WebUSB
 - [ ] universal programmer mode
 - [ ] plugin support
-- [ ] world domination (optional)
 
 ---
 
-# 🤖 AI DISCLOSURE
+# AI DISCLOSURE
 
 AI helped me with:
 
-- yelling at Rust compiler errors
+- Rust compiler errors
 - understanding some `esp-hal` stuff
 - improving code structure
-- writing parts of the documentation
 
 all of the project design, implementation, testing, debugging, and making everything actually work was done by me!!
