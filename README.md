@@ -1,79 +1,95 @@
-# ESProg!!! 🦀
+# ESProg
 
-hai!! ESProg is my super cool project that turns an ESP32-S3 into a hardware programmer!!the goal is to make something that's cheap, open-source, and can read/write SPI flash chips :D
+hai!! ESProg is my super cool project that turns an ESP32-S3 into a hardware programmer!!
 
-right now it's got a working firmware, a desktop CLI, and both of them can talk to each other over the ESP32-S3's native USB!
+the goal is to make something that's cheap, open-source, and can read/write SPI flash chips :D
+
+right now it's got working firmware, a desktop CLI, and both of them can talk to each other over the ESP32-S3's native USB!!
 
 ---
 
-# ✨ cool stuff!
+# cool stuff!
 
-- works over the ESP32-S3's built-in USB port!!- USB Serial/JTAG
+- works over the ESP32-S3's built-in USB port!!
+- USB Serial/JTAG
 - automatic device detection
 - works on macOS
 - works on Linux
+- firmware is `no_std`
+- firmware + CLI are written in Rust
 
 ---
 
-## 🦀 firmware
+# firmware
 
-written completely in Rust!!currently has:
+the firmware lives in `firmware/` and is written completely in Rust!!
+
+currently it has:
 
 - USB communication
 - command parser
 - dummy memory backend
+- READ
+- WRITE
+- ERASE
+- FILL
+- bounds checking
 - modular code
 - `no_std`
 
 current layout:
 
-```text
-firmware/
-├── src/
-│   ├── bin/
-│   │   └── main.rs
-│   ├── dummy.rs
-│   ├── protocol.rs
-│   ├── usb.rs
-│   └── lib.rs
-└── Cargo.toml
-```
+    firmware/
+    ├── src/
+    │   ├── bin/
+    │   │   └── main.rs
+    │   ├── dummy.rs
+    │   ├── protocol.rs
+    │   ├── usb.rs
+    │   └── lib.rs
+    ├── .cargo/
+    │   └── config.toml
+    ├── build.rs
+    ├── Cargo.toml
+    └── Cargo.lock
+
+the firmware targets the ESP32-S3's Xtensa architecture using the ESP Rust toolchain and `esp-hal`.
 
 ---
 
-## 💻 CLI
+# CLI
 
-also written in Rust!!currently supports:
+the CLI is also written in Rust!!
 
-```text
-PING
-INFO
-READ
-WRITE
-ERASE
-FILL
-HELP
-```
+currently supports:
+
+    PING
+    INFO
+    READ
+    WRITE
+    ERASE
+    FILL
+    HELP
 
 example:
 
-```bash
-cargo run -- ping
-```
+    cargo run -- ping
 
 output:
 
-```text
-PONG
-```
+    PONG
 
-yay!!! :D
+yay!!!
 
 ---
 
-## 🧪 dummy backend
+# dummy backend
 
-before talking to a real flash chip, i made a fake one!!it currently supports:
+before talking to a real flash chip, i made a fake one!!
+
+this lets me build and test the whole protocol without needing actual SPI flash hardware yet :D
+
+it currently supports:
 
 - read
 - write
@@ -82,15 +98,53 @@ before talking to a real flash chip, i made a fake one!!it currently supports:
 - bounds checking
 - 64 KiB virtual memory
 
-example:
+for example:
 
-```text
-WRITE 0x0000 AA BB CC DD
+    WRITE 0x0000 AA BB CC DD
 
-READ 0x0000 04
+    READ 0x0000 04
 
-AA BB CC DD
-```
+    AA BB CC DD
+
+the idea is that the command layer doesn't need to care whether it's talking to the dummy backend or a real SPI flash chip later!!
+
+something like:
+
+                  FlashBackend
+                     |
+              +------+------+
+              |             |
+              v             v
+          DummyFlash     SpiFlash
+
+so once the real flash backend exists, most of the rest of ESProg shouldn't need to change :D
+
+---
+
+# how it works
+
+the basic idea is:
+
+    +-------------+
+    |   ESProg    |
+    |     CLI     |
+    +------+------+
+           |
+           | USB
+           v
+    +-------------+
+    |  ESP32-S3   |
+    |  Firmware   |
+    +------+------+
+           |
+           | SPI
+           v
+    +-------------+
+    |  SPI Flash  |
+    |    Chip     |
+    +-------------+
+
+the CLI sends commands over USB, the firmware parses them, and eventually those commands will be translated into operations on a real SPI flash chip!!
 
 ---
 
@@ -98,9 +152,11 @@ AA BB CC DD
 
 ESProg was made with:
 
-- Rust 🦀
+- Rust
 - ESP32-S3
-- esp-hal
+- `esp-hal`
+- native USB
+- SPI flash (coming soon)
 
 ---
 
@@ -108,69 +164,119 @@ ESProg was made with:
 
 ## 1. clone the repo
 
-```bash
-git clone https://github.com/gnahiak2/esprog.git
-cd esprog
-```
+    git clone https://github.com/gnahiak2/esprog.git
+    cd esprog
+
+---
 
 ## 2. install the ESP Rust toolchain
 
-```bash
-cargo install espup
-espup install
-```
+install `espup`:
 
-then load it:
+    cargo install espup
 
-```bash
-source ~/export-esp.sh
-```
+then install the ESP toolchain:
+
+    espup install
+
+then load the environment:
+
+    source ~/export-esp.sh
+
+you may want to add that to your shell startup file so you don't have to run it every time.
+
+---
 
 ## 3. build the firmware
 
-```bash
-cd firmware
-cargo build
-```
+go into the firmware directory:
+
+    cd firmware
+
+then build:
+
+    cargo build --release
+
+the firmware uses the ESP32-S3 target automatically through `.cargo/config.toml`.
+
+---
 
 ## 4. flash it
 
-```bash
-espflash flash target/xtensa-esp32s3-none-elf/debug/esprog-firmware
-```
+with your ESP32-S3 connected, run:
+
+    cargo run --release
+
+this uses the configured `espflash` runner:
+
+    espflash flash --monitor --chip esp32s3
+
+so you don't need to manually specify the generated binary!!
+
+---
 
 ## 5. build the CLI
 
-```bash
-cd ../cli
-cargo build
-```
+go back to the repository root:
+
+    cd ../cli
+
+then build:
+
+    cargo build --release
+
+---
 
 ## 6. try it!!
-```bash
-cargo run -- ping
-```
+
+once the firmware and CLI are running, try:
+
+    cargo run -- ping
 
 you should get:
 
-```text
-PONG
-```
+    PONG
 
 or:
 
-```bash
-cargo run -- info
-```
+    cargo run -- info
 
-```text
-DEVICE: DUMMY
-SIZE: 65536 bytes
-```
+which currently returns something like:
+
+    DEVICE: DUMMY
+    SIZE: 65536 bytes
+
+---
+
+# project layout
+
+    esprog/
+    ├── cli/
+    │   └── ...
+    │
+    ├── firmware/
+    │   ├── src/
+    │   │   ├── bin/
+    │   │   │   └── main.rs
+    │   │   ├── dummy.rs
+    │   │   ├── protocol.rs
+    │   │   ├── usb.rs
+    │   │   └── lib.rs
+    │   ├── .cargo/
+    │   │   └── config.toml
+    │   ├── build.rs
+    │   ├── Cargo.toml
+    │   └── Cargo.lock
+    │
+    ├── esprog-logo.png
+    ├── esprog-logo.svg
+    ├── LICENSE
+    └── README.md
 
 ---
 
 # stuff i still wanna add!!
+
 ## firmware
 
 - [x] USB communication
@@ -185,28 +291,40 @@ SIZE: 65536 bytes
 - [ ] sector erase
 - [ ] page programming
 - [ ] verify after writing
+- [ ] support more flash chips
+
+---
 
 ## CLI
 
-- [x] auto device detection
-- [x] cross-platform support
+- [x] basic commands
+- [x] USB communication
+- [ ] auto device detection
+- [ ] cross-platform support
 - [ ] flash `.bin` files
 - [ ] dump flash to a file
 - [ ] progress bars
 - [ ] prettier output
+- [ ] better error messages
+
+---
 
 ## hardware
 
 - [ ] SPI bridge mode
 - [ ] more flash chips
 - [ ] automatic chip detection
+- [ ] dedicated ESProg hardware
 
-## someday maybe™
+---
+
+# someday maybe™
 
 - [ ] GUI
 - [ ] WebUSB
 - [ ] universal programmer mode
 - [ ] plugin support
+- [ ] more programmer protocols
 
 ---
 
