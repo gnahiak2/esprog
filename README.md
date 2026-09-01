@@ -17,6 +17,8 @@ right now it's got working firmware, a desktop CLI, and both of them can talk to
 - works on Linux
 - firmware is `no_std`
 - firmware + CLI are written in Rust
+- prebuilt releases
+- ESP32-S3 firmware included with releases
 
 ---
 
@@ -73,7 +75,7 @@ currently supports:
 
 example:
 
-    cargo run -- ping
+    esprog ping
 
 output:
 
@@ -144,7 +146,7 @@ the basic idea is:
     |    Chip     |
     +-------------+
 
-the CLI sends commands over USB, the firmware parses them, and eventually those commands will be translated into operations on a real SPI flash chip!!
+the CLI sends commands over USB, the firmware parses them, and the firmware handles the requested operation.
 
 ---
 
@@ -156,82 +158,65 @@ ESProg was made with:
 - ESP32-S3
 - `esp-hal`
 - native USB
-- SPI flash (coming soon)
+- SPI flash
 
 ---
 
 # how to run it!!
 
-## 1. clone the repo
+## 1. download ESProg
 
-    git clone https://github.com/gnahiak2/esprog.git
-    cd esprog
+you don't need to build ESProg from source just to use it!!
 
----
+go to the latest release:
 
-## 2. install the ESP Rust toolchain
+https://github.com/gnahiak2/esprog/releases/latest
 
-install `espup`:
+download the release files for your platform.
 
-    cargo install espup
+the release includes:
 
-then install the ESP toolchain:
-
-    espup install
-
-then load the environment:
-
-    source ~/export-esp.sh
-
-you may want to add that to your shell startup file so you don't have to run it every time.
+- prebuilt ESProg CLI binaries
+- ESP32-S3 firmware
+- other files needed for the release
 
 ---
 
-## 3. build the firmware
+## 2. flash the firmware
 
-go into the firmware directory:
+connect your ESP32-S3 to your computer.
 
-    cd firmware
+you will need `esptool` to flash the firmware.
 
-then build:
+find your ESP32-S3's serial port.
 
-    cargo build --release
+on macOS, it will usually look something like:
 
-the firmware uses the ESP32-S3 target automatically through `.cargo/config.toml`.
+    /dev/cu.usbmodemXXXX
 
----
+on Linux, it will usually look something like:
 
-## 4. flash it
+    /dev/ttyACM0
 
-with your ESP32-S3 connected, run:
+then flash the firmware:
 
-    cargo run --release
+    esptool --chip esp32s3 --port /dev/cu.usbmodemXXXX write-flash 0x0 esprog-firmware.bin
 
-this uses the configured `espflash` runner:
+replace `/dev/cu.usbmodemXXXX` with the actual port for your board.
 
-    espflash flash --monitor --chip esp32s3
-
-so you don't need to manually specify the generated binary!!
+if your firmware release uses a different filename, use the firmware file included in the release instead.
 
 ---
 
-## 5. build the CLI
+## 3. run the CLI
 
-go back to the repository root:
+make the CLI executable if needed:
 
-    cd ../cli
+    chmod +x esprog
 
-then build:
+then run:
 
-    cargo build --release
-
----
-
-## 6. try it!!
-
-once the firmware and CLI are running, try:
-
-    cargo run -- ping
+    ./esprog ping
 
 you should get:
 
@@ -239,7 +224,7 @@ you should get:
 
 or:
 
-    cargo run -- info
+    ./esprog info
 
 which currently returns something like:
 
@@ -272,6 +257,18 @@ which currently returns something like:
     ├── esprog-logo.svg
     ├── LICENSE
     └── README.md
+
+---
+
+# releases
+
+prebuilt binaries are available from GitHub Releases so you don't need the Rust toolchain just to use ESProg.
+
+latest release:
+
+https://github.com/gnahiak2/esprog/releases/latest
+
+if you want to build or modify ESProg yourself, the full source code is available in this repository.
 
 ---
 
