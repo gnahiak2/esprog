@@ -10,7 +10,7 @@ ESP32-S3
 Flash Chip
 ````
 
-Current Features
+## Current Features
 
 Rust firmware
 Rust CLI
@@ -24,7 +24,7 @@ ERASE
 FILL
 Dummy 64 KiB memory
 
-Next
+## Next
 
 Real SPI flash support
 JEDEC detection
@@ -34,13 +34,13 @@ Verify
 `.bin` flashing
 Progress bars
 
-Releases
+## Releases
 
 Prebuilt binaries and firmware:
 
 [https://github.com/gnahiak2/esprog/releases/latest](https://github.com/gnahiak2/esprog/releases/latest)
 
-AI Disclosure
+## AI Disclosure
 
 AI helped with compiler errors, `esp-hal`, and code organization.
 
